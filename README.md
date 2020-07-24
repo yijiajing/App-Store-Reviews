@@ -1,7 +1,7 @@
 # App-Store-Reviews
 <h2> What does it do </h2>
 Extracts reviews of an app from App Store and saves them into json file (specifically date, rating, title, and content of each review).<br/>
-Then you can further manipulate what is saved.
+Makes further manipulation of this data easier.
 
 <h2> How to use it </h2>
 First find the app id and the two-character code of the country where you would like to see App Store reviews.<br/>
