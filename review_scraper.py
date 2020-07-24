@@ -49,9 +49,19 @@ def parse_one_page(url):
 # extract reviews of an app on a certain page in the App Store of the specified country
 def get_reviews_on_page(country, page, app_id, sort_by='mostRecent', out_filename='reviews.json'):
     url = generate_url(country, page, app_id, sort_by)
-    with open(out_filename, 'w', encoding='utf-8') as out_file:
-        data = {'review': parse_one_page(url)}
-        json.dump(data, out_file, indent=4, ensure_ascii=False)
+    data = {'review': []}
+
+    try:
+        data['review'] = parse_one_page(url)
+    except HTTPError:
+        print('There is no review on this page or for this app.')
+        return
+
+    if not data['review']:
+        print('There is no review for this app.')
+    else:
+        with open(out_filename, 'w', encoding='utf-8') as out_file:
+            json.dump(data, out_file, indent=4, ensure_ascii=False)
 
 
 # extract reviews of an app from page from_page to to_page in the App Store of the specified country
@@ -60,27 +70,36 @@ def get_reviews_on_pages(country, from_page, to_page, app_id, sort_by='mostRecen
         get_reviews_on_page(country, from_page, app_id, sort_by='mostRecent', out_filename='reviews.json')
     elif from_page > to_page:
         raise Exception('Invalid input: pages should go from a smaller number to a larger number')
-    with open(out_filename, 'w', encoding='utf-8') as out_file:
-        data = {'review': []}
-        for i in range(from_page, to_page + 1):
-            url = generate_url(country, i, app_id, sort_by)
-            try:
-                data['review'].extend(parse_one_page(url))
-            except HTTPError:
-                break
-        json.dump(data, out_file, indent=4, ensure_ascii=False)
+
+    data = {'review': []}
+    for i in range(from_page, to_page + 1):
+        url = generate_url(country, i, app_id, sort_by)
+        try:
+            data['review'].extend(parse_one_page(url))
+        except HTTPError:
+            break
+
+    if not data['review']:
+        print('There is no review for this app or on these pages.')
+    else:
+        with open(out_filename, 'w', encoding='utf-8') as out_file:
+            json.dump(data, out_file, indent=4, ensure_ascii=False)
 
 
 # extract all existing reviews of an app in the App Store of the specified country
 def get_all_reviews(country, app_id, sort_by='mostRecent', out_filename='reviews.json'):
-    with open(out_filename, 'w', encoding='utf-8') as out_file:
-        i = 1
-        data = {'review': []}
-        while True:
-            url = generate_url(country, i, app_id, sort_by)
-            try:
-                data['review'].extend(parse_one_page(url))
-                i += 1
-            except HTTPError:
-                break
-        json.dump(data, out_file, indent=4, ensure_ascii=False)
+    data = {'review': []}
+    i = 1
+    while True:
+        url = generate_url(country, i, app_id, sort_by)
+        try:
+            data['review'].extend(parse_one_page(url))
+            i += 1
+        except HTTPError:
+            break
+
+    if not data['review']:
+        print('There is no review for this app.')
+    else:
+        with open(out_filename, 'w', encoding='utf-8') as out_file:
+            json.dump(data, out_file, indent=4, ensure_ascii=False)
